@@ -1,7 +1,46 @@
-import { initialContacts } from './types'
+import { useId, useState } from 'react'
+import { ContactForm } from './ContactForm'
+import { ContactList } from './ContactList'
+import { initialContacts, type Contact, type NewContact } from './types'
 
-// TODO: manage contact state; render a "Search contacts" input that filters by
-// name or email (case-insensitive); render ContactList and ContactForm (adding appends).
+function createId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `contact-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 export function SearchableContacts() {
-  return <div>TODO: SearchableContacts ({initialContacts.length} contacts)</div>
+  const searchId = useId()
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
+  const [query, setQuery] = useState('')
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const visibleContacts = normalizedQuery
+    ? contacts.filter(
+        (contact) =>
+          contact.name.toLowerCase().includes(normalizedQuery) ||
+          contact.email.toLowerCase().includes(normalizedQuery),
+      )
+    : contacts
+
+  function handleAdd(contact: NewContact) {
+    setContacts((prev) => [...prev, { id: createId(), ...contact }])
+  }
+
+  return (
+    <section>
+      <div>
+        <label htmlFor={searchId}>Search contacts</label>
+        <input
+          id={searchId}
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </div>
+      <ContactList contacts={visibleContacts} />
+      <ContactForm onAdd={handleAdd} />
+    </section>
+  )
 }
