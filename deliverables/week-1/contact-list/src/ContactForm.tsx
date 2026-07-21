@@ -34,16 +34,23 @@ function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
-// A bare username becomes `<name>@ravn.co`; a value that already has an `@`
-// (someone pasted a full address) is left alone.
+// A value that already has an `@` (someone pasted a full address) is left
+// alone; a bare username becomes `<name>@ravn.co`. Shared with the render
+// logic below so the domain hint disappears exactly when this stops applying.
+function hasExplicitDomain(raw: string): boolean {
+  return raw.includes('@')
+}
+
 function resolveEmail(raw: string): string {
   const trimmed = raw.trim()
-  return trimmed.includes('@') ? trimmed : `${trimmed}@${EMAIL_DOMAIN}`
+  return hasExplicitDomain(trimmed) ? trimmed : `${trimmed}@${EMAIL_DOMAIN}`
 }
 
 export function ContactForm({ onAdd }: { onAdd: (contact: NewContact) => void }) {
   const fieldId = useId()
   const [{ name, email, role, error }, dispatch] = useReducer(formReducer, initialFormState)
+  const domainId = `${fieldId}-email-domain`
+  const showDomainSuffix = !hasExplicitDomain(email)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -82,12 +89,14 @@ export function ContactForm({ onAdd }: { onAdd: (contact: NewContact) => void })
             id={`${fieldId}-email`}
             type="text"
             value={email}
-            aria-describedby={`${fieldId}-email-domain`}
+            aria-describedby={showDomainSuffix ? domainId : undefined}
             onChange={(event) => dispatch({ type: 'set-field', field: 'email', value: event.target.value })}
           />
-          <span className="contact-form__suffix" id={`${fieldId}-email-domain`}>
-            @{EMAIL_DOMAIN}
-          </span>
+          {showDomainSuffix && (
+            <span className="contact-form__suffix" id={domainId}>
+              @{EMAIL_DOMAIN}
+            </span>
+          )}
         </div>
       </div>
       <div className="contact-form__field">
