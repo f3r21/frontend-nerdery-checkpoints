@@ -7,7 +7,7 @@ export type FormState =
   | { status: 'error'; message: string }
 
 function assertNever(value: never): never {
-  throw new Error("Unexpected value: " + value);
+  throw new Error(`Unexpected value: ${value}`)
 }
 
 export function describeState(state: FormState): string {
