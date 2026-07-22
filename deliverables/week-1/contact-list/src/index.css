@@ -18,6 +18,10 @@
 }
 
 .contact-demo__masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--contact-space-md);
   margin-bottom: var(--contact-space-xl);
   padding-bottom: var(--contact-space-sm);
   border-bottom: 4px solid var(--contact-ink);
