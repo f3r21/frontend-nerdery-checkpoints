@@ -110,5 +110,18 @@ describe('TodoApp', () => {
     expect(screen.getByRole('checkbox', { name: 'Walk dog' })).toBeInTheDocument()
   })
 
-  it.todo('shows the count of active todos as "{n} left"')
+  it('shows the count of active todos as "{n} left" and updates as todos change', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    await addTodo(user, 'Buy milk')
+    await addTodo(user, 'Walk dog')
+    expect(screen.getByText('2 left')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: 'Buy milk' }))
+    expect(screen.getByText('1 left')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: 'Walk dog' }))
+    expect(screen.getByText('0 left')).toBeInTheDocument()
+  })
 })
