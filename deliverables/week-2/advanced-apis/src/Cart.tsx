@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { useCart } from './CartContext'
 
 // Sample products the demo can add to the cart. Integer prices keep the
@@ -9,14 +10,34 @@ const SAMPLE_PRODUCTS = [
 
 export function Cart() {
   const { state, total, add, remove, setQty, clear } = useCart()
+  const firstAddButtonRef = useRef<HTMLButtonElement>(null)
+  const isFirstRender = useRef(true)
+
+  // Remove / clear / setQty→0 can unmount whatever element currently holds
+  // focus, which drops it to <body>. When that happens, send it back to a
+  // control that's guaranteed to still exist rather than leaving it lost.
+  useLayoutEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    if (document.activeElement === document.body) {
+      firstAddButtonRef.current?.focus()
+    }
+  }, [state.items])
 
   return (
     <section aria-label="Shopping cart">
       <h2>Cart</h2>
 
       <div>
-        {SAMPLE_PRODUCTS.map((product) => (
-          <button key={product.id} type="button" onClick={() => add(product)}>
+        {SAMPLE_PRODUCTS.map((product, index) => (
+          <button
+            key={product.id}
+            type="button"
+            ref={index === 0 ? firstAddButtonRef : undefined}
+            onClick={() => add(product)}
+          >
             Add {product.name} (${product.price})
           </button>
         ))}
