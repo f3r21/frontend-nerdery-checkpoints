@@ -9,7 +9,11 @@ export function useLocalStorageState<T>(
   const [value, setState] = useState<T>(() => {
     const stored = localStorage.getItem(key)
     if (stored !== null) {
-      return JSON.parse(stored) as T
+      try {
+        return JSON.parse(stored) as T
+      } catch (e) {
+        console.error('useLocalStorageState: failed to parse for key "' + key + '":', e)
+      }
     }
     return initialValue
   })
@@ -18,7 +22,12 @@ export function useLocalStorageState<T>(
     (next: T | ((prev: T) => T)) => {
       setState((prev) => {
         const resolved = next instanceof Function ? next(prev) : next
-        localStorage.setItem(key, JSON.stringify(resolved))
+        try {
+          localStorage.setItem(key, JSON.stringify(resolved))
+        } catch (e) {
+          console.error('useLocalStorageState: failed to set key "' + key + '":', e)
+          return prev
+        }
         return resolved
       })
     },
