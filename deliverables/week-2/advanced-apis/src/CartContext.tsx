@@ -1,5 +1,5 @@
-import React from 'react'
-import { type CartState, initialCart } from './cartReducer'
+import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import { cartReducer, initialCart, selectTotal, type CartState } from './cartReducer'
 
 export interface CartApi {
   state: CartState
@@ -10,20 +10,27 @@ export interface CartApi {
   clear: () => void
 }
 
-// STUB: provider just renders children.
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+const CartContext = createContext<CartApi | null>(null)
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(cartReducer, initialCart)
+
+  const value: CartApi = {
+    state,
+    total: selectTotal(state),
+    add: (item) => dispatch({ type: 'add', item }),
+    remove: (id) => dispatch({ type: 'remove', id }),
+    setQty: (id, qty) => dispatch({ type: 'setQty', id, qty }),
+    clear: () => dispatch({ type: 'clear' }),
+  }
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
-// STUB: returns a dummy that does NOT throw and never updates, so the
-// context + integration tests fail (RED).
 export function useCart(): CartApi {
-  return {
-    state: initialCart,
-    total: 0,
-    add: () => {},
-    remove: () => {},
-    setQty: () => {},
-    clear: () => {},
+  const value = useContext(CartContext)
+  if (value === null) {
+    throw new Error('useCart must be used within a CartProvider')
   }
+  return value
 }
