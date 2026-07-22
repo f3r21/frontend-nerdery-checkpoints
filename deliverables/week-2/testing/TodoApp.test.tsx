@@ -70,8 +70,45 @@ describe('TodoApp', () => {
     expect(screen.queryByRole('checkbox', { name: 'Buy milk' })).not.toBeInTheDocument()
   })
 
-  it.todo('Active filter shows only not-completed todos')
-  it.todo('Completed filter shows only completed todos')
-  it.todo('All filter shows every todo again')
+  it('Active filter shows only not-completed todos', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+    await addTodo(user, 'Buy milk')
+    await addTodo(user, 'Walk dog')
+    await user.click(screen.getByRole('checkbox', { name: 'Buy milk' }))
+
+    await user.click(screen.getByRole('button', { name: 'Active' }))
+
+    expect(screen.getByRole('checkbox', { name: 'Walk dog' })).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Buy milk' })).not.toBeInTheDocument()
+  })
+
+  it('Completed filter shows only completed todos', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+    await addTodo(user, 'Buy milk')
+    await addTodo(user, 'Walk dog')
+    await user.click(screen.getByRole('checkbox', { name: 'Buy milk' }))
+
+    await user.click(screen.getByRole('button', { name: 'Completed' }))
+
+    expect(screen.getByRole('checkbox', { name: 'Buy milk' })).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Walk dog' })).not.toBeInTheDocument()
+  })
+
+  it('All filter shows every todo again', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+    await addTodo(user, 'Buy milk')
+    await addTodo(user, 'Walk dog')
+    await user.click(screen.getByRole('checkbox', { name: 'Buy milk' }))
+    await user.click(screen.getByRole('button', { name: 'Completed' }))
+
+    await user.click(screen.getByRole('button', { name: 'All' }))
+
+    expect(screen.getByRole('checkbox', { name: 'Buy milk' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Walk dog' })).toBeInTheDocument()
+  })
+
   it.todo('shows the count of active todos as "{n} left"')
 })
