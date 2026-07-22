@@ -11,17 +11,18 @@ const SAMPLE_PRODUCTS = [
 export function Cart() {
   const { state, total, add, remove, setQty, clear } = useCart()
   const firstAddButtonRef = useRef<HTMLButtonElement>(null)
-  const isFirstRender = useRef(true)
+  const previousItemCount = useRef(state.items.length)
 
   // Remove / clear / setQty→0 can unmount whatever element currently holds
-  // focus, which drops it to <body>. When that happens, send it back to a
-  // control that's guaranteed to still exist rather than leaving it lost.
+  // focus, which drops it to <body>. When the item count just dropped, send
+  // focus back to a control that's guaranteed to still exist rather than
+  // leaving it lost. Comparing counts (rather than a "first render" flag)
+  // keeps this correct under StrictMode's dev-only double effect
+  // invocation on mount, which would otherwise re-arm a flag-based guard.
   useLayoutEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
-    if (document.activeElement === document.body) {
+    const shrank = state.items.length < previousItemCount.current
+    previousItemCount.current = state.items.length
+    if (shrank && document.activeElement === document.body) {
       firstAddButtonRef.current?.focus()
     }
   }, [state.items])
