@@ -6,6 +6,10 @@ export type FormState =
   | { status: 'success'; id: string }
   | { status: 'error'; message: string }
 
+function assertNever(value: never): never {
+  throw new Error("Unexpected value: " + value);
+}
+
 export function describeState(state: FormState): string {
   switch (state.status) {
     case 'idle':
@@ -17,8 +21,7 @@ export function describeState(state: FormState): string {
     case 'error':
       return state.message
     default: {
-      const _exhaustive: never = state
-      return _exhaustive
+      return assertNever(state)
     }
   }
 }
