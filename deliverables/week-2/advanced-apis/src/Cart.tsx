@@ -47,21 +47,31 @@ export function Cart() {
       {state.items.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
-        <ul>
+        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {state.items.map((item) => (
-            <li key={item.id}>
-              <span>
-                {item.name} — ${item.price} × {item.qty}
-              </span>
-              <span style={{ margin: '0 0.5rem' }}>
+            <li
+              key={item.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '4rem 1rem 3rem 5rem max-content',
+                alignItems: 'center',
+                gap: '0.75rem',
+              }}
+            >
+              <span>{item.name}</span>
+              <span>—</span>
+              <span>${item.price}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                 <button
                   type="button"
                   aria-label={`Decrease quantity for ${item.name}`}
                   onClick={() => adjustQty(item.id, -1)}
                 >
                   -
-                </button>{' '}
-                <span aria-live="polite">{item.qty}</span>{' '}
+                </button>
+                <span aria-live="polite" style={{ minWidth: '1.5ch', textAlign: 'center' }}>
+                  {item.qty}
+                </span>
                 <button
                   type="button"
                   aria-label={`Increase quantity for ${item.name}`}
@@ -70,7 +80,7 @@ export function Cart() {
                   +
                 </button>
               </span>
-              <button type="button" onClick={() => remove(item.id)}>
+              <button type="button" style={{ whiteSpace: 'nowrap' }} onClick={() => remove(item.id)}>
                 Remove {item.name}
               </button>
             </li>
