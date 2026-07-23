@@ -36,10 +36,10 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       return action.qty <= 0
         ? { items: state.items.filter((item) => item.id !== action.id) }
         : {
-            items: state.items.map((item) =>
-              item.id === action.id ? { ...item, qty: action.qty } : item,
-            ),
-          }
+          items: state.items.map((item) =>
+            item.id === action.id ? { ...item, qty: action.qty } : item,
+          ),
+        }
     case 'clear':
       return { items: [] }
     default: {
