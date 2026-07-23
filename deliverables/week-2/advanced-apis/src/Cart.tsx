@@ -53,15 +53,23 @@ export function Cart() {
               <span>
                 {item.name} — ${item.price} × {item.qty}
               </span>
-              <label>
-                Qty for {item.name}
-                <input
-                  type="number"
-                  min={0}
-                  value={item.qty}
-                  onChange={(e) => setQty(item.id, Number(e.target.value))}
-                />
-              </label>
+              <span style={{ margin: '0 0.5rem' }}>
+                <button
+                  type="button"
+                  aria-label={`Decrease quantity for ${item.name}`}
+                  onClick={() => setQty(item.id, item.qty - 1)}
+                >
+                  -
+                </button>{' '}
+                <span aria-live="polite">{item.qty}</span>{' '}
+                <button
+                  type="button"
+                  aria-label={`Increase quantity for ${item.name}`}
+                  onClick={() => setQty(item.id, item.qty + 1)}
+                >
+                  +
+                </button>
+              </span>
               <button type="button" onClick={() => remove(item.id)}>
                 Remove {item.name}
               </button>
