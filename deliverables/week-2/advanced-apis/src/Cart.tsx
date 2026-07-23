@@ -9,7 +9,7 @@ const SAMPLE_PRODUCTS = [
 ] as const
 
 export function Cart() {
-  const { state, total, add, remove, setQty, clear } = useCart()
+  const { state, total, add, remove, adjustQty, clear } = useCart()
   const firstAddButtonRef = useRef<HTMLButtonElement>(null)
   const previousItemCount = useRef(state.items.length)
 
@@ -57,7 +57,7 @@ export function Cart() {
                 <button
                   type="button"
                   aria-label={`Decrease quantity for ${item.name}`}
-                  onClick={() => setQty(item.id, item.qty - 1)}
+                  onClick={() => adjustQty(item.id, -1)}
                 >
                   -
                 </button>{' '}
@@ -65,7 +65,7 @@ export function Cart() {
                 <button
                   type="button"
                   aria-label={`Increase quantity for ${item.name}`}
-                  onClick={() => setQty(item.id, item.qty + 1)}
+                  onClick={() => adjustQty(item.id, 1)}
                 >
                   +
                 </button>

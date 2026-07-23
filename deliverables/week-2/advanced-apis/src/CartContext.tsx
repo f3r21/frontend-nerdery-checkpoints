@@ -7,6 +7,7 @@ export interface CartApi {
   add: (item: { id: string; name: string; price: number }) => void
   remove: (id: string) => void
   setQty: (id: string, qty: number) => void
+  adjustQty: (id: string, delta: number) => void
   clear: () => void
 }
 
@@ -21,6 +22,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     add: (item) => dispatch({ type: 'add', item }),
     remove: (id) => dispatch({ type: 'remove', id }),
     setQty: (id, qty) => dispatch({ type: 'setQty', id, qty }),
+    adjustQty: (id, delta) => dispatch({ type: 'adjustQty', id, delta }),
     clear: () => dispatch({ type: 'clear' }),
   }), [state])
 

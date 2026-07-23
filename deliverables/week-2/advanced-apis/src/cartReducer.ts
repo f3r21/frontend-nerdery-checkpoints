@@ -13,6 +13,7 @@ export type CartAction =
   | { type: 'add'; item: { id: string; name: string; price: number } }
   | { type: 'remove'; id: string }
   | { type: 'setQty'; id: string; qty: number }
+  | { type: 'adjustQty'; id: string; delta: number }
   | { type: 'clear' }
 
 export const initialCart: CartState = { items: [] }
@@ -44,6 +45,18 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
             item.id === action.id ? { ...item, qty: action.qty } : item,
           ),
         }
+    case 'adjustQty': {
+      const target = state.items.find((item) => item.id === action.id)
+      if (!target) return state
+      const nextQty = target.qty + action.delta
+      return nextQty <= 0
+        ? { items: state.items.filter((item) => item.id !== action.id) }
+        : {
+          items: state.items.map((item) =>
+            item.id === action.id ? { ...item, qty: nextQty } : item,
+          ),
+        }
+    }
     case 'clear':
       return { items: [] }
     default: {
