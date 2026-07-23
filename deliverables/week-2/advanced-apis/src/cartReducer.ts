@@ -17,6 +17,10 @@ export type CartAction =
 
 export const initialCart: CartState = { items: [] }
 
+function assertNever(value: never): never {
+  throw new Error(`Unexpected value: ${value}`)
+}
+
 export function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'add': {
@@ -43,8 +47,7 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
     case 'clear':
       return { items: [] }
     default: {
-      const _exhaustive: never = action
-      return _exhaustive
+      return assertNever(action)
     }
   }
 }
