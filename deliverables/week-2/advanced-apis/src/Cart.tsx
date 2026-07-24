@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import { useCart } from './CartContext'
+import './Cart.css'
 
 // Sample products the demo can add to the cart. Integer prices keep the
 // displayed total easy to read and assert against.
@@ -28,14 +29,15 @@ export function Cart() {
   }, [state.items])
 
   return (
-    <section aria-label="Shopping cart">
-      <h2>Cart</h2>
+    <section className="cart" aria-label="Shopping cart">
+      <h2 className="cart__heading">Cart</h2>
 
-      <div>
+      <div className="cart__products">
         {SAMPLE_PRODUCTS.map((product, index) => (
           <button
             key={product.id}
             type="button"
+            className="cart__add"
             ref={index === 0 ? firstAddButtonRef : undefined}
             onClick={() => add(product)}
           >
@@ -45,42 +47,36 @@ export function Cart() {
       </div>
 
       {state.items.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <p className="cart__empty">Your cart is empty.</p>
       ) : (
-        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <ul className="cart__list">
           {state.items.map((item) => (
-            <li
-              key={item.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '4rem 1rem 3rem 5rem max-content',
-                alignItems: 'center',
-                gap: '0.75rem',
-              }}
-            >
-              <span>{item.name}</span>
-              <span>—</span>
-              <span>${item.price}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <li key={item.id} className="cart__row">
+              <span className="cart__name">{item.name}</span>
+              <span className="cart__sep">—</span>
+              <span className="cart__price">${item.price}</span>
+              <span className="cart__stepper">
                 <button
                   type="button"
+                  className="cart__step cart__step--decrease"
                   aria-label={`Decrease quantity for ${item.name}`}
                   onClick={() => adjustQty(item.id, -1)}
                 >
                   -
                 </button>
-                <span aria-live="polite" style={{ minWidth: '1.5ch', textAlign: 'center' }}>
+                <span className="cart__qty" aria-live="polite">
                   {item.qty}
                 </span>
                 <button
                   type="button"
+                  className="cart__step cart__step--increase"
                   aria-label={`Increase quantity for ${item.name}`}
                   onClick={() => adjustQty(item.id, 1)}
                 >
                   +
                 </button>
               </span>
-              <button type="button" style={{ whiteSpace: 'nowrap' }} onClick={() => remove(item.id)}>
+              <button type="button" className="cart__remove" onClick={() => remove(item.id)}>
                 Remove {item.name}
               </button>
             </li>
@@ -88,9 +84,11 @@ export function Cart() {
         </ul>
       )}
 
-      <p data-testid="cart-total">Total: ${total}</p>
+      <p className="cart__total" data-testid="cart-total">
+        Total: ${total}
+      </p>
 
-      <button type="button" onClick={clear}>
+      <button type="button" className="cart__clear" onClick={clear}>
         Clear cart
       </button>
     </section>
