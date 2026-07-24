@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import type { FormState } from './formState'
 import { StatusBanner } from './StatusBanner'
+import { useLocalStorageState } from './useLocalStorageState'
 import './index.css'
 
 // Runnable demo shown in the dev server: cycle through every FormState variant
@@ -13,7 +13,7 @@ const STATES: FormState[] = [
 ]
 
 export default function Demo() {
-  const [state, setState] = useState<FormState>(STATES[0])
+  const [state, setState] = useLocalStorageState<FormState>('form-status-state', STATES[0])
 
   return (
     <main className="status-demo">
