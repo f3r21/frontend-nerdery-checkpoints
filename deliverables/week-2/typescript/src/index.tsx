@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormState } from './formState'
 import { StatusBanner } from './StatusBanner'
+import './index.css'
 
 // Runnable demo shown in the dev server: cycle through every FormState variant
 // and see how StatusBanner reacts.
@@ -15,16 +16,25 @@ export default function Demo() {
   const [state, setState] = useState<FormState>(STATES[0])
 
   return (
-    <main style={{ fontFamily: 'system-ui', maxWidth: 640, margin: '1rem auto', padding: '0 1rem' }}>
-      <h1>Form status</h1>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        {STATES.map((next) => (
-          <button key={next.status} onClick={() => setState(next)}>
-            {next.status}
-          </button>
-        ))}
+    <main className="status-demo">
+      <div className="status-demo__inner">
+        <header className="status-demo__masthead">
+          <h1 className="status-demo__title">Form status</h1>
+        </header>
+        <div className="status-demo__controls">
+          {STATES.map((next) => (
+            <button
+              key={next.status}
+              type="button"
+              className="status-demo__control"
+              onClick={() => setState(next)}
+            >
+              {next.status}
+            </button>
+          ))}
+        </div>
+        <StatusBanner state={state} />
       </div>
-      <StatusBanner state={state} />
     </main>
   )
 }
