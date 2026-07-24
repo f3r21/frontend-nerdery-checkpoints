@@ -1,9 +1,11 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { ContactForm } from './ContactForm'
 import { ContactList } from './ContactList'
 import { FieldLabel } from './FieldLabel'
 import { initialContacts, type Contact, type NewContact } from './types'
 import './SearchableContacts.css'
+
+const STORAGE_KEY = 'contact-list-contacts'
 
 function createId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -12,10 +14,30 @@ function createId(): string {
   return `contact-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+function hydrateContacts(): Contact[] {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored !== null) {
+    try {
+      return JSON.parse(stored) as Contact[]
+    } catch (e) {
+      console.error('SearchableContacts: failed to parse persisted contacts:', e)
+    }
+  }
+  return initialContacts
+}
+
 export function SearchableContacts() {
   const searchId = useId()
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
+  const [contacts, setContacts] = useState<Contact[]>(hydrateContacts)
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts))
+    } catch (e) {
+      console.error('SearchableContacts: failed to persist contacts:', e)
+    }
+  }, [contacts])
 
   const normalizedQuery = query.trim().toLowerCase()
   const visibleContacts = normalizedQuery
