@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { cartReducer, initialCart, selectTotal, type CartState } from './cartReducer'
 
 export interface CartApi {
@@ -13,8 +13,30 @@ export interface CartApi {
 
 const CartContext = createContext<CartApi | null>(null)
 
+const STORAGE_KEY = 'shopping-cart-items'
+
+function hydrateCart(): CartState {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored !== null) {
+    try {
+      return JSON.parse(stored) as CartState
+    } catch (e) {
+      console.error('CartProvider: failed to parse persisted cart:', e)
+    }
+  }
+  return initialCart
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, initialCart)
+  const [state, dispatch] = useReducer(cartReducer, undefined, hydrateCart)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    } catch (e) {
+      console.error('CartProvider: failed to persist cart:', e)
+    }
+  }, [state])
 
   const value: CartApi = useMemo(() => ({
     state,
