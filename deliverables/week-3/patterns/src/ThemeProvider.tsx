@@ -12,8 +12,16 @@ export type ThemeContextValue = { theme: Theme; toggle: () => void }
 const STORAGE_KEY = 'theme'
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
+// Falls back to the OS preference rather than a hardcoded 'light' so the
+// value React mounts with matches what patterns.css already painted before
+// hydration (the `prefers-color-scheme` fallback there) — no light/dark
+// flash on first visit.
 function getInitialTheme(): Theme {
-  return localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === 'dark' || stored === 'light') {
+    return stored
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
