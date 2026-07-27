@@ -17,9 +17,13 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 // hydration (the `prefers-color-scheme` fallback there) — no light/dark
 // flash on first visit.
 function getInitialTheme(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored === 'dark' || stored === 'light') {
-    return stored
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'dark' || stored === 'light') {
+      return stored
+    }
+  } catch (e) {
+    console.error('ThemeProvider: failed to read persisted theme:', e)
   }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
@@ -29,7 +33,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    localStorage.setItem(STORAGE_KEY, theme)
+    try {
+      localStorage.setItem(STORAGE_KEY, theme)
+    } catch (e) {
+      console.error('ThemeProvider: failed to persist theme:', e)
+    }
   }, [theme])
 
   const toggle = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))

@@ -46,13 +46,22 @@ interface TabsProps {
 }
 
 function TabsRoot({ defaultValue, children }: TabsProps) {
-  const [value, setValue] = useState(
-    () => localStorage.getItem(STORAGE_KEY) ?? defaultValue,
-  )
+  const [value, setValue] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) ?? defaultValue
+    } catch (e) {
+      console.error('Tabs: failed to read persisted tab:', e)
+      return defaultValue
+    }
+  })
   const baseId = useId()
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, value)
+    try {
+      localStorage.setItem(STORAGE_KEY, value)
+    } catch (e) {
+      console.error('Tabs: failed to persist tab:', e)
+    }
   }, [value])
 
   const context: TabsContextValue = useMemo(
