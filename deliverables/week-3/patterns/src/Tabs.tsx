@@ -1,18 +1,22 @@
-import { createContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
-// ---------------------------------------------------------------------------
-// STUB IMPLEMENTATION
-// Renders the sub-components flat with the correct roles so tests fail on the
-// behavioural assertions (one visible panel, aria-selected, switching) rather
-// than on import errors. Replace with the reference solution.
-// ---------------------------------------------------------------------------
-
+// The active value lives here and nowhere else. Sub-components read it from
+// context, so a consumer composes `Tabs.List` / `Tabs.Tab` / `Tabs.Panel` in
+// any arrangement without threading `active`/`onChange` through the tree.
 interface TabsContextValue {
   value: string
-  setValue: (value: string) => void
+  select: (value: string) => void
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null)
+
+function useTabsContext(): TabsContextValue {
+  const context = useContext(TabsContext)
+  if (context === null) {
+    throw new Error('Tabs.List, Tabs.Tab and Tabs.Panel must be used within <Tabs>')
+  }
+  return context
+}
 
 interface TabsProps {
   defaultValue: string
@@ -20,14 +24,14 @@ interface TabsProps {
 }
 
 function TabsRoot({ defaultValue, children }: TabsProps) {
-  const [value] = useState(defaultValue)
-  // STUB: activation is not wired up yet.
-  const setValue = (_next: string): void => {}
-  return (
-    <TabsContext.Provider value={{ value, setValue }}>
-      {children}
-    </TabsContext.Provider>
+  const [value, setValue] = useState(defaultValue)
+
+  const context: TabsContextValue = useMemo(
+    () => ({ value, select: setValue }),
+    [value],
   )
+
+  return <TabsContext.Provider value={context}>{children}</TabsContext.Provider>
 }
 
 interface TabsListProps {
@@ -35,6 +39,10 @@ interface TabsListProps {
 }
 
 function TabsList({ children }: TabsListProps) {
+  // Nothing from context is needed here yet; the call is the guard, so a
+  // tablist rendered outside <Tabs> fails as loudly as its tabs would.
+  useTabsContext()
+
   return <div role="tablist">{children}</div>
 }
 
@@ -43,10 +51,12 @@ interface TabProps {
   children: ReactNode
 }
 
-function Tab({ value: _value, children }: TabProps) {
-  // STUB: never selected, click does nothing.
+function Tab({ value, children }: TabProps) {
+  const { value: activeValue, select } = useTabsContext()
+  const isSelected = value === activeValue
+
   return (
-    <button type="button" role="tab" aria-selected={false}>
+    <button type="button" role="tab" aria-selected={isSelected} onClick={() => select(value)}>
       {children}
     </button>
   )
@@ -57,8 +67,15 @@ interface TabsPanelProps {
   children: ReactNode
 }
 
-function TabsPanel({ value: _value, children }: TabsPanelProps) {
-  // STUB: every panel is always rendered.
+function TabsPanel({ value, children }: TabsPanelProps) {
+  const { value: activeValue } = useTabsContext()
+
+  // Inactive panels are not rendered at all, so exactly one tabpanel is ever
+  // in the accessibility tree.
+  if (value !== activeValue) {
+    return null
+  }
+
   return <div role="tabpanel">{children}</div>
 }
 
