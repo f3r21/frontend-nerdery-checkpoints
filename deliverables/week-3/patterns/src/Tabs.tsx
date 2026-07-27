@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
+import './Tabs.css'
 
 // The active value lives here and nowhere else. Sub-components read it from
 // context, so a consumer composes `Tabs.List` / `Tabs.Tab` / `Tabs.Panel` in
@@ -103,7 +104,7 @@ function TabsList({ children }: TabsListProps) {
   }
 
   return (
-    <div role="tablist" ref={listRef} onKeyDown={handleKeyDown}>
+    <div className="tabs__list" role="tablist" ref={listRef} onKeyDown={handleKeyDown}>
       {children}
     </div>
   )
@@ -120,6 +121,7 @@ function Tab({ value, children }: TabProps) {
 
   return (
     <button
+      className="tabs__tab"
       type="button"
       role="tab"
       id={tabIdFor(baseId, value)}
@@ -153,6 +155,7 @@ function TabsPanel({ value, children }: TabsPanelProps) {
 
   return (
     <div
+      className="tabs__panel"
       role="tabpanel"
       id={panelIdFor(baseId, value)}
       aria-labelledby={tabIdFor(baseId, value)}
