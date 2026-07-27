@@ -19,7 +19,9 @@
   letter-spacing: var(--tabs-track-label);
   text-transform: uppercase;
   cursor: pointer;
-  transition: color var(--tabs-duration) var(--tabs-ease);
+  transition:
+    color var(--tabs-duration) var(--tabs-ease),
+    transform var(--tabs-duration) var(--tabs-ease);
 }
 
 /* Sits on top of the tablist's own rule, so only the selected tab's
@@ -37,6 +39,10 @@
 
 .tabs__tab:hover {
   color: var(--tabs-ink);
+}
+
+.tabs__tab:active {
+  transform: translateY(1px);
 }
 
 .tabs__tab[aria-selected='true'] {
@@ -58,5 +64,9 @@
   .tabs__tab,
   .tabs__tab::after {
     transition: none;
+  }
+
+  .tabs__tab:active {
+    transform: none;
   }
 }
