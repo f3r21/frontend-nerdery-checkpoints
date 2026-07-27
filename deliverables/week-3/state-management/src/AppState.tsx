@@ -1,41 +1,43 @@
-import React from 'react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { useState, type ReactNode } from 'react'
 import { fetchUsers, type User } from './api'
 
 /**
- * STUB — intentionally wrong so the acceptance tests fail (RED).
- *
- * Replace this file with a real implementation:
- *  - `useUsers` must fetch ONCE and share/dedupe the result across every
- *    component under `AppStateProvider` (no duplicate in-flight requests).
- *  - `useSelectedUser` must expose a SINGLE, globally-shared selection so
- *    that sibling components read and write the same value.
+ * Server state and UI state are kept apart on purpose: the fetched users are
+ * cached and deduped by TanStack Query, while the selection (below) is plain
+ * UI state in a context.
  */
-
-// STUB: provider does nothing but render children — no shared cache, no
-// shared selection.
-export function AppStateProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+function createQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        // The list never goes stale on its own, so a consumer that unmounts
+        // and comes back reads the cache instead of firing a second request.
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        retry: false,
+      },
+    },
+  })
 }
 
-// STUB (breaks dedupe): every component that calls this fires its own
-// `fetchUsers`, so N consumers produce N network calls instead of one.
+export function AppStateProvider({ children }: { children: ReactNode }) {
+  // One client per provider instance rather than a module-level singleton, so
+  // the cache lives exactly as long as the provider that owns it.
+  const [queryClient] = useState(createQueryClient)
+
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+}
+
 export function useUsers(): { users: User[]; isLoading: boolean } {
-  const [users, setUsers] = React.useState<User[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  // Every caller asks for the same key, so the first one starts the request
+  // and the rest join it. N consumers, one fetch.
+  const { data, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => fetchUsers(),
+  })
 
-  React.useEffect(() => {
-    let active = true
-    fetchUsers().then((result) => {
-      if (!active) return
-      setUsers(result)
-      setIsLoading(false)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  return { users, isLoading }
+  return { users: data ?? [], isLoading }
 }
 
 // STUB (breaks sharing): selection lives in local component state, so each
@@ -44,6 +46,6 @@ export function useSelectedUser(): {
   selectedId: string | null
   select: (id: string) => void
 } {
-  const [selectedId, setSelectedId] = React.useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   return { selectedId, select: setSelectedId }
 }
