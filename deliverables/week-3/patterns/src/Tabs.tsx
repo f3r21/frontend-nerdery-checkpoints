@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -24,6 +25,11 @@ interface TabsContextValue {
 const tabIdFor = (baseId: string, value: string) => `${baseId}-tab-${value}`
 const panelIdFor = (baseId: string, value: string) => `${baseId}-panel-${value}`
 
+// One shared slot for the whole page, same as ThemeProvider's 'theme' key.
+// A second <Tabs> rendered alongside this one would share it too, which
+// doesn't happen in this demo.
+const STORAGE_KEY = 'patterns-active-tab'
+
 const TabsContext = createContext<TabsContextValue | null>(null)
 
 function useTabsContext(): TabsContextValue {
@@ -40,8 +46,14 @@ interface TabsProps {
 }
 
 function TabsRoot({ defaultValue, children }: TabsProps) {
-  const [value, setValue] = useState(defaultValue)
+  const [value, setValue] = useState(
+    () => localStorage.getItem(STORAGE_KEY) ?? defaultValue,
+  )
   const baseId = useId()
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, value)
+  }, [value])
 
   const context: TabsContextValue = useMemo(
     () => ({ value, select: setValue, baseId }),
