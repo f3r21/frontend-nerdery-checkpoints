@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { fetchUsers, type User } from './api'
 
 /**
@@ -21,12 +21,32 @@ function createQueryClient(): QueryClient {
   })
 }
 
+interface SelectionApi {
+  selectedId: string | null
+  select: (id: string) => void
+}
+
+const SelectionContext = createContext<SelectionApi | null>(null)
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
   // One client per provider instance rather than a module-level singleton, so
   // the cache lives exactly as long as the provider that owns it.
   const [queryClient] = useState(createQueryClient)
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  // The one and only selection. It lives here, above both consumers, which is
+  // what lets a sibling see a choice made somewhere else in the tree.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const selection: SelectionApi = useMemo(
+    () => ({ selectedId, select: setSelectedId }),
+    [selectedId],
+  )
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SelectionContext.Provider value={selection}>{children}</SelectionContext.Provider>
+    </QueryClientProvider>
+  )
 }
 
 export function useUsers(): { users: User[]; isLoading: boolean } {
@@ -40,12 +60,10 @@ export function useUsers(): { users: User[]; isLoading: boolean } {
   return { users: data ?? [], isLoading }
 }
 
-// STUB (breaks sharing): selection lives in local component state, so each
-// consumer has its OWN selection and siblings never see each other's choice.
-export function useSelectedUser(): {
-  selectedId: string | null
-  select: (id: string) => void
-} {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  return { selectedId, select: setSelectedId }
+export function useSelectedUser(): SelectionApi {
+  const selection = useContext(SelectionContext)
+  if (selection === null) {
+    throw new Error('useSelectedUser must be used within an AppStateProvider')
+  }
+  return selection
 }
