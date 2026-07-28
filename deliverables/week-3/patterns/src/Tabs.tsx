@@ -90,7 +90,7 @@ export function createTabs<T extends string = string>(storageKey: string) {
       } catch (e) {
         console.error('Tabs: failed to persist tab:', e)
       }
-    }, [value, storageKey])
+    }, [value])
 
     const context: TabsContextValue = useMemo(
       () => ({ value, select: setValue, baseId, defaultValue }),
