@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -20,6 +21,7 @@ interface TabsContextValue {
   value: string
   select: (value: string) => void
   baseId: string
+  defaultValue: string
 }
 
 const tabIdFor = (baseId: string, value: string) => `${baseId}-tab-${value}`
@@ -65,8 +67,8 @@ function TabsRoot({ defaultValue, children }: TabsProps) {
   }, [value])
 
   const context: TabsContextValue = useMemo(
-    () => ({ value, select: setValue, baseId }),
-    [value, baseId],
+    () => ({ value, select: setValue, baseId, defaultValue }),
+    [value, baseId, defaultValue],
   )
 
   return <TabsContext.Provider value={context}>{children}</TabsContext.Provider>
@@ -94,10 +96,22 @@ function nextTabIndex(key: string, current: number, last: number): number | null
 }
 
 function TabsList({ children }: TabsListProps) {
-  // Nothing from context is needed here; the call is the guard, so a tablist
-  // rendered outside <Tabs> fails as loudly as its tabs would.
-  useTabsContext()
+  const { defaultValue, select } = useTabsContext()
   const listRef = useRef<HTMLDivElement>(null)
+
+  // A persisted active value that no longer matches any rendered tab (e.g.
+  // a value was renamed since it was saved) would otherwise leave every tab
+  // unselected and every panel unrendered. Runs before paint, once, so an
+  // orphaned value never has a chance to flash with nothing selected.
+  useLayoutEffect(() => {
+    const tabs = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []
+    const hasSelection = Array.from(tabs).some(
+      (tab) => tab.getAttribute('aria-selected') === 'true',
+    )
+    if (!hasSelection && tabs.length > 0) {
+      select(defaultValue)
+    }
+  }, [defaultValue, select])
 
   // The APG keyboard contract, with manual activation: arrows and Home/End
   // move focus, and the tab is a real button so Enter/Space already activate
