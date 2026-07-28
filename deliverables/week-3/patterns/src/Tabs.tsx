@@ -15,11 +15,6 @@ import './Tabs.css'
 const tabIdFor = (baseId: string, value: string) => `${baseId}-tab-${value}`
 const panelIdFor = (baseId: string, value: string) => `${baseId}-panel-${value}`
 
-// One shared slot for the whole page, same as ThemeProvider's 'theme' key.
-// A second <Tabs> rendered alongside this one would share it too, which
-// doesn't happen in this demo.
-const STORAGE_KEY = 'patterns-active-tab'
-
 // Where the arrow keys land, or null for a key the tablist doesn't handle.
 // Both arrows wrap around the ends.
 function nextTabIndex(key: string, current: number, last: number): number | null {
@@ -43,7 +38,14 @@ function nextTabIndex(key: string, current: number, last: number): number | null
 // createTabs<T>() call gets its own Context (and its own Tab/Panel closed
 // over that same T), so a value that isn't in T is a compile error instead
 // of silently typed as `string`.
-export function createTabs<T extends string = string>() {
+//
+// storageKey is explicit, not derived, for the same reason a queryKey or an
+// IndexedDB store name is: whoever creates an instance is the one who knows
+// its semantic identity, so they're the one who names it. Nothing here (or
+// in TypeScript) can catch two instances picking the same string by
+// accident — that's a runtime identity, not something the type system has
+// any way to verify is globally unique.
+export function createTabs<T extends string = string>(storageKey: string) {
   // The active value lives here and nowhere else. Sub-components read it from
   // context, so a consumer composes `Tabs.List` / `Tabs.Tab` / `Tabs.Panel` in
   // any arrangement without threading `active`/`onChange` through the tree.
@@ -74,7 +76,7 @@ export function createTabs<T extends string = string>() {
   function TabsRoot({ defaultValue, children }: TabsProps) {
     const [value, setValue] = useState<T>(() => {
       try {
-        return (localStorage.getItem(STORAGE_KEY) as T | null) ?? defaultValue
+        return (localStorage.getItem(storageKey) as T | null) ?? defaultValue
       } catch (e) {
         console.error('Tabs: failed to read persisted tab:', e)
         return defaultValue
@@ -84,11 +86,11 @@ export function createTabs<T extends string = string>() {
 
     useEffect(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, value)
+        localStorage.setItem(storageKey, value)
       } catch (e) {
         console.error('Tabs: failed to persist tab:', e)
       }
-    }, [value])
+    }, [value, storageKey])
 
     const context: TabsContextValue = useMemo(
       () => ({ value, select: setValue, baseId, defaultValue }),
@@ -220,5 +222,7 @@ export function createTabs<T extends string = string>() {
 // The default: identical to every consumer that just does
 // `import { Tabs } from './Tabs'` before this factory existed — `value` is
 // plain `string`, nothing narrower. `index.tsx` opts into a stricter T of
-// its own instead of using this one.
-export const Tabs = createTabs<string>()
+// its own instead of using this one. Its own storage key, distinct from
+// index.tsx's, so the two never fight over the same localStorage slot if
+// this one's ever rendered too.
+export const Tabs = createTabs<string>('patterns-active-tab-default')
