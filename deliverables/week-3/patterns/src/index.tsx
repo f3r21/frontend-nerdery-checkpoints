@@ -1,7 +1,12 @@
-import { Tabs } from './Tabs'
+import { createTabs } from './Tabs'
 import { ThemeProvider } from './ThemeProvider'
 import { ThemeToggle } from './ThemeToggle'
 import './index.css'
+
+// Its own T instead of the default (plain string) Tabs export: overview /
+// specs / reviews is a fixed, known set for this demo, so a typo'd value on
+// Tabs.Tab or Tabs.Panel becomes a compile error instead of a silent no-op.
+const Tabs = createTabs<'overview' | 'specs' | 'reviews'>()
 
 export default function Demo() {
   return (
