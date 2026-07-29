@@ -9,6 +9,7 @@ import {
   useState,
   type KeyboardEvent,
   type ReactNode,
+  type RefObject,
 } from 'react'
 import './Tabs.css'
 
@@ -59,6 +60,10 @@ export function createTabs<T extends string = string>(
     select: (value: T) => void
     baseId: string
     defaultValue: T
+    // Which values are actually mounted right now, kept as data instead of
+    // read back out of the DOM. Each Tab registers itself on mount; TabsList
+    // uses it to tell "no tab matches the active value" from real state.
+    knownValues: RefObject<Set<T>>
   }
 
   const TabsContext = createContext<TabsContextValue | null>(null)
@@ -98,6 +103,7 @@ export function createTabs<T extends string = string>(
       }
     })
     const baseId = useId()
+    const knownValues = useRef<Set<T>>(new Set())
 
     useEffect(() => {
       try {
@@ -108,8 +114,8 @@ export function createTabs<T extends string = string>(
     }, [value])
 
     const context: TabsContextValue = useMemo(
-      () => ({ value, select: setValue, baseId, defaultValue }),
-      [value, baseId, defaultValue],
+      () => ({ value, select: setValue, baseId, defaultValue, knownValues }),
+      [value, baseId, defaultValue, knownValues],
     )
 
     return <TabsContext.Provider value={context}>{children}</TabsContext.Provider>
@@ -121,29 +127,35 @@ export function createTabs<T extends string = string>(
   }
 
   function TabsList({ children, 'aria-label': ariaLabel }: TabsListProps) {
-    const { defaultValue, select } = useTabsContext()
+    const { value, defaultValue, select, knownValues } = useTabsContext()
     const listRef = useRef<HTMLDivElement>(null)
 
-    // A persisted active value that no longer matches any rendered tab (e.g.
-    // a value was renamed since it was saved) would otherwise leave every tab
-    // unselected and every panel unrendered. Runs before paint, once, so an
-    // orphaned value never has a chance to flash with nothing selected.
+    // Only needed when nothing validated the persisted value up front: with
+    // `validValues` supplied, `isValidValue` already rejects an orphaned
+    // value before first paint (TabsRoot's useState initializer), so `value`
+    // can never mismatch a registered tab here — this effect would just be
+    // re-confirming a guarantee TabsRoot already made. Without `validValues`
+    // (the permissive, string-typed default `Tabs` export), any non-null
+    // string is trusted at read time, so a value orphaned by a prior,
+    // differently-shaped use of the same storage key can still slip through
+    // — this is the fallback net for exactly that case, and only that case.
+    // Checked against `knownValues` (data each Tab registered on mount)
+    // rather than by reading `aria-selected` back out of the rendered DOM.
     useLayoutEffect(() => {
-      const tabs = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []
-      const hasSelection = Array.from(tabs).some(
-        (tab) => tab.getAttribute('aria-selected') === 'true',
-      )
-      if (!hasSelection && tabs.length > 0) {
+      if (validValues !== undefined) {
+        return
+      }
+      if (knownValues.current.size > 0 && !knownValues.current.has(value)) {
         select(defaultValue)
       }
-    }, [defaultValue, select])
+    }, [value, defaultValue, select, knownValues])
 
     // The APG keyboard contract, with manual activation: arrows and Home/End
     // move focus, and the tab is a real button so Enter/Space already activate
     // it. Moving focus without selecting keeps arrowing through the tabs from
     // swapping the panel out from under someone still looking for the one they
-    // want. Tabs are read back out of the DOM rather than tracked in a
-    // registry, so they stay in visual order however the consumer nests them.
+    // want. This still reads the DOM rather than `knownValues` above: this
+    // needs visual order, which a Set can't give back, only existence.
     function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
       const tabs = Array.from(
         listRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
@@ -182,8 +194,18 @@ export function createTabs<T extends string = string>(
   }
 
   function Tab({ value, children }: TabProps) {
-    const { value: activeValue, select, baseId } = useTabsContext()
+    const { value: activeValue, select, baseId, knownValues } = useTabsContext()
     const isSelected = value === activeValue
+
+    // Registers this value in TabsRoot's shared set so TabsList's recovery
+    // check (above) has real data to compare against instead of the DOM.
+    useLayoutEffect(() => {
+      const values = knownValues.current
+      values.add(value)
+      return () => {
+        values.delete(value)
+      }
+    }, [value, knownValues])
 
     return (
       <button
