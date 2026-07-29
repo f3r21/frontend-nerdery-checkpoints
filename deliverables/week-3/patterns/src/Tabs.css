@@ -9,7 +9,13 @@
 
 .tabs__tab {
   position: relative;
-  padding: var(--tabs-space-xs) 0;
+  /* Horizontal padding widens the click/tap target beyond the text; the
+     matching negative margin cancels it back out of the flex layout, so
+     tabs keep their original visual spacing. The two combined still leave
+     0.25rem of true gap between adjacent hit areas (0.5rem in from a
+     1.25rem gap on each side), so targets can't overlap. */
+  padding: var(--tabs-space-xs);
+  margin-inline: calc(var(--tabs-space-xs) * -1);
   border: 0;
   background: transparent;
   color: var(--tabs-muted);
