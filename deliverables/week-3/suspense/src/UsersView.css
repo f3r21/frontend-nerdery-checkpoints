@@ -22,7 +22,7 @@
 .roster__retry {
   padding: var(--roster-space-xs) var(--roster-space-md);
   border: 0;
-  background: var(--roster-danger);
+  background: var(--roster-ink);
   color: var(--roster-paper);
   font-family: inherit;
   font-size: var(--roster-text-label);
@@ -30,7 +30,13 @@
   letter-spacing: var(--roster-track-label);
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform var(--roster-duration) var(--roster-ease);
+  transition:
+    background-color var(--roster-duration) var(--roster-ease),
+    transform var(--roster-duration) var(--roster-ease);
+}
+
+.roster__retry:hover {
+  background: var(--roster-accent);
 }
 
 .roster__retry:active {

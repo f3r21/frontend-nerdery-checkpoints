@@ -1,4 +1,4 @@
-import { Component, Suspense, use, useState, type ReactNode } from 'react'
+import { Component, Suspense, use, useEffect, useRef, useState, type ReactNode } from 'react'
 import { fetchUsers, type User } from './api'
 import './UsersView.css'
 
@@ -34,6 +34,33 @@ function UserList() {
         <li key={user.id}>{user.name}</li>
       ))}
     </ul>
+  )
+}
+
+interface ErrorFallbackProps {
+  onRetry: () => void
+}
+
+// A separate component (not inline JSX) so it gets its own mount effect:
+// ErrorBoundary swaps this in fresh each time it catches, which is exactly
+// the moment focus should move to the fix-it action. `role="alert"` already
+// gets the message announced without needing focus - this gets the button
+// under a keyboard user's fingers too, instead of leaving them to Tab-hunt
+// for it.
+function ErrorFallback({ onRetry }: ErrorFallbackProps) {
+  const retryRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    retryRef.current?.focus()
+  }, [])
+
+  return (
+    <div role="alert" className="roster__alert">
+      <p>Could not load users.</p>
+      <button type="button" ref={retryRef} className="roster__retry" onClick={onRetry}>
+        Try again
+      </button>
+    </div>
   )
 }
 
@@ -75,18 +102,8 @@ export function UsersView() {
     // The boundary sits outside Suspense so it catches the rejection, and the
     // key remounts it on retry, which is what clears `hasError` and leaves it
     // able to catch a later failure.
-    <ErrorBoundary
-      key={attempt}
-      fallback={
-        <div role="alert" className="roster__alert">
-          <p>Could not load users.</p>
-          <button type="button" className="roster__retry" onClick={handleRetry}>
-            Try again
-          </button>
-        </div>
-      }
-    >
-      <Suspense fallback={<p className="roster__loading">Loading…</p>}>
+    <ErrorBoundary key={attempt} fallback={<ErrorFallback onRetry={handleRetry} />}>
+      <Suspense fallback={<p className="roster__loading" role="status">Loading…</p>}>
         <UserList />
       </Suspense>
     </ErrorBoundary>
