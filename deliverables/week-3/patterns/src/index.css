@@ -61,6 +61,21 @@
   transform: translateY(1px);
 }
 
+.tabs-demo__section {
+  margin-top: var(--tabs-space-xl);
+  padding-top: var(--tabs-space-lg);
+  border-top: 1px solid var(--tabs-rule);
+}
+
+.tabs-demo__section-label {
+  margin: 0 0 var(--tabs-space-md);
+  color: var(--tabs-muted);
+  font-size: var(--tabs-text-label);
+  font-weight: 700;
+  letter-spacing: var(--tabs-track-label);
+  text-transform: uppercase;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tabs-demo__toggle {
     transition: none;
