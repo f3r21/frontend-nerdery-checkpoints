@@ -34,7 +34,7 @@ export default function Demo() {
             <ThemeToggle />
           </header>
           <ProjectTabs defaultValue="overview">
-            <ProjectTabs.List>
+            <ProjectTabs.List aria-label="Project">
               <ProjectTabs.Tab value="overview">Overview</ProjectTabs.Tab>
               <ProjectTabs.Tab value="tasks">Tasks</ProjectTabs.Tab>
               <ProjectTabs.Tab value="activity">Activity</ProjectTabs.Tab>
@@ -50,9 +50,9 @@ export default function Demo() {
             </ProjectTabs.Panel>
           </ProjectTabs>
           <section className="tabs-demo__section">
-            <p className="tabs-demo__section-label">Preferences</p>
+            <h2 className="tabs-demo__section-label">Preferences</h2>
             <PreferencesTabs defaultValue="account">
-              <PreferencesTabs.List>
+              <PreferencesTabs.List aria-label="Preferences">
                 <PreferencesTabs.Tab value="account">Account</PreferencesTabs.Tab>
                 <PreferencesTabs.Tab value="privacy">Privacy</PreferencesTabs.Tab>
               </PreferencesTabs.List>

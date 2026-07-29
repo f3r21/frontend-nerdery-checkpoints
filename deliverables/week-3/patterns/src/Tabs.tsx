@@ -117,9 +117,10 @@ export function createTabs<T extends string = string>(
 
   interface TabsListProps {
     children: ReactNode
+    'aria-label'?: string
   }
 
-  function TabsList({ children }: TabsListProps) {
+  function TabsList({ children, 'aria-label': ariaLabel }: TabsListProps) {
     const { defaultValue, select } = useTabsContext()
     const listRef = useRef<HTMLDivElement>(null)
 
@@ -163,7 +164,13 @@ export function createTabs<T extends string = string>(
     }
 
     return (
-      <div className="tabs__list" role="tablist" ref={listRef} onKeyDown={handleKeyDown}>
+      <div
+        className="tabs__list"
+        role="tablist"
+        aria-label={ariaLabel}
+        ref={listRef}
+        onKeyDown={handleKeyDown}
+      >
         {children}
       </div>
     )
