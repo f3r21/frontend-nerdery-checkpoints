@@ -45,7 +45,10 @@ function nextTabIndex(key: string, current: number, last: number): number | null
 // in TypeScript) can catch two instances picking the same string by
 // accident — that's a runtime identity, not something the type system has
 // any way to verify is globally unique.
-export function createTabs<T extends string = string>(storageKey: string) {
+export function createTabs<T extends string = string>(
+  storageKey: string,
+  validValues?: readonly T[],
+) {
   // The active value lives here and nowhere else. Sub-components read it from
   // context, so a consumer composes `Tabs.List` / `Tabs.Tab` / `Tabs.Panel` in
   // any arrangement without threading `active`/`onChange` through the tree.
@@ -68,6 +71,17 @@ export function createTabs<T extends string = string>(storageKey: string) {
     return context
   }
 
+  // `validValues` is optional: the default, unconstrained `Tabs` export below
+  // has no fixed set of tab values to check against, and there any non-null
+  // stored string genuinely is a valid T. When a caller does supply it, this
+  // is what turns the persisted-value read into a real check instead of a
+  // blind assertion — the cast lives on `validValues` (an array we already
+  // know is `T`-shaped), never on the untrusted string coming out of
+  // localStorage.
+  function isValidValue(value: string): value is T {
+    return validValues === undefined || (validValues as readonly string[]).includes(value)
+  }
+
   interface TabsProps {
     defaultValue: T
     children: ReactNode
@@ -76,7 +90,8 @@ export function createTabs<T extends string = string>(storageKey: string) {
   function TabsRoot({ defaultValue, children }: TabsProps) {
     const [value, setValue] = useState<T>(() => {
       try {
-        return (localStorage.getItem(storageKey) as T | null) ?? defaultValue
+        const stored = localStorage.getItem(storageKey)
+        return stored !== null && isValidValue(stored) ? stored : defaultValue
       } catch (e) {
         console.error('Tabs: failed to read persisted tab:', e)
         return defaultValue
