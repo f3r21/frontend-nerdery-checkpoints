@@ -1,8 +1,7 @@
 /*
  * Suspense (Roster) — same editorial system as Patterns, under its own
  * token namespace so the demos don't collide when the SPA dev server keeps
- * several of them mounted at once. No manual theme toggle here, just the OS
- * preference via prefers-color-scheme.
+ * several of them mounted at once.
  */
 
 :root {
@@ -32,8 +31,25 @@
   --roster-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Theming follows the house convention: `[data-theme]` on the root element
+   drives the palette. */
+[data-theme='dark'] {
+  --roster-paper: oklch(17% 0.014 264);
+  --roster-ink: oklch(95% 0.004 264);
+  --roster-muted: oklch(68% 0.014 264);
+  --roster-rule: oklch(30% 0.014 264);
+  --roster-accent: oklch(72% 0.15 256);
+  --roster-danger: oklch(70% 0.16 25);
+  --roster-danger-soft: oklch(28% 0.07 25);
+}
+
+/* Serves the right palette for the instant before React hydrates.
+   ThemeProvider takes over immediately after mount, but reads this same OS
+   preference when nothing's stored yet, so the two agree and there's no
+   flash. Guarding on `:not([data-theme])` keeps an explicit choice winning
+   in both directions once one exists. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --roster-paper: oklch(17% 0.014 264);
     --roster-ink: oklch(95% 0.004 264);
     --roster-muted: oklch(68% 0.014 264);

@@ -16,6 +16,10 @@
 }
 
 .roster-demo__masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--roster-space-md);
   margin-bottom: var(--roster-space-xl);
   padding-bottom: var(--roster-space-sm);
   border-bottom: 4px solid var(--roster-ink);
@@ -28,4 +32,39 @@
   line-height: 0.9;
   letter-spacing: -0.04em;
   text-transform: uppercase;
+}
+
+.roster-demo__toggle {
+  flex: none;
+  padding: var(--roster-space-xs) var(--roster-space-md);
+  border: 0;
+  background: var(--roster-ink);
+  color: var(--roster-paper);
+  font-family: inherit;
+  font-size: var(--roster-text-label);
+  font-weight: 700;
+  letter-spacing: var(--roster-track-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color var(--roster-duration) var(--roster-ease),
+    transform var(--roster-duration) var(--roster-ease);
+}
+
+.roster-demo__toggle:hover {
+  background: var(--roster-accent);
+}
+
+.roster-demo__toggle:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roster-demo__toggle {
+    transition: none;
+  }
+
+  .roster-demo__toggle:active {
+    transform: none;
+  }
 }
