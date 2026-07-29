@@ -1,5 +1,6 @@
 import { Component, Suspense, use, useState, type ReactNode } from 'react'
 import { fetchUsers, type User } from './api'
+import './UsersView.css'
 
 /**
  * One request, cached at module level. The first render that needs the users
@@ -28,7 +29,7 @@ function UserList() {
   const users = use(getUsers())
 
   return (
-    <ul>
+    <ul className="roster__list">
       {users.map((user) => (
         <li key={user.id}>{user.name}</li>
       ))}
@@ -77,15 +78,15 @@ export function UsersView() {
     <ErrorBoundary
       key={attempt}
       fallback={
-        <div role="alert">
+        <div role="alert" className="roster__alert">
           <p>Could not load users.</p>
-          <button type="button" onClick={handleRetry}>
+          <button type="button" className="roster__retry" onClick={handleRetry}>
             Try again
           </button>
         </div>
       }
     >
-      <Suspense fallback={<p>Loading…</p>}>
+      <Suspense fallback={<p className="roster__loading">Loading…</p>}>
         <UserList />
       </Suspense>
     </ErrorBoundary>
