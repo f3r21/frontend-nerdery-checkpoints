@@ -9,7 +9,7 @@ export function UsersScreen() {
   const { select } = useSelectedUser()
 
   if (isLoading) {
-    return <p>Loading users…</p>
+    return <p role="status">Loading users…</p>
   }
 
   return (

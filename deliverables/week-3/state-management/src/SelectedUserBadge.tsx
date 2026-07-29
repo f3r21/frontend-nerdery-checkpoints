@@ -12,5 +12,5 @@ export function SelectedUserBadge() {
 
   const selected = users.find((user) => user.id === selectedId)
 
-  return <p>Selected: {selected ? selected.name : 'none'}</p>
+  return <p role="status">Selected: {selected ? selected.name : 'none'}</p>
 }

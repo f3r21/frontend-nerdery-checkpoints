@@ -6,20 +6,25 @@ import { fetchUsers, type User } from './api'
  * Server state and UI state are kept apart on purpose: the fetched users are
  * cached and deduped by TanStack Query, while the selection (below) is plain
  * UI state in a context.
+ *
+ * Created once at module scope, not per AppStateProvider mount: the whole
+ * point of caching is that it survives a consumer unmounting and
+ * remounting - including the provider itself remounting when this demo's
+ * route is navigated away from and back to. A queryClient created inside
+ * the component (e.g. via `useState`) would throw the cache away on exactly
+ * that navigation, which defeats the "reused across navigation" contract.
  */
-function createQueryClient(): QueryClient {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        // The list never goes stale on its own, so a consumer that unmounts
-        // and comes back reads the cache instead of firing a second request.
-        staleTime: Infinity,
-        refetchOnWindowFocus: false,
-        retry: false,
-      },
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // The list never goes stale on its own, so a consumer that unmounts
+      // and comes back reads the cache instead of firing a second request.
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      retry: false,
     },
-  })
-}
+  },
+})
 
 interface SelectionApi {
   selectedId: string | null
@@ -29,12 +34,10 @@ interface SelectionApi {
 const SelectionContext = createContext<SelectionApi | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  // One client per provider instance rather than a module-level singleton, so
-  // the cache lives exactly as long as the provider that owns it.
-  const [queryClient] = useState(createQueryClient)
-
   // The one and only selection. It lives here, above both consumers, which is
-  // what lets a sibling see a choice made somewhere else in the tree.
+  // what lets a sibling see a choice made somewhere else in the tree. Unlike
+  // queryClient above, this is meant to reset on remount - it's per-visit UI
+  // state, not data worth persisting across navigation.
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const selection: SelectionApi = useMemo(
