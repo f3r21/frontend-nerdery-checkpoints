@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import { fetchUsers, type User } from './api'
 
 /**
@@ -40,10 +40,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // state, not data worth persisting across navigation.
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const selection: SelectionApi = useMemo(
-    () => ({ selectedId, select: setSelectedId }),
-    [selectedId],
-  )
+  // Not memoized on purpose: the only two things that re-render
+  // AppStateProvider are a `selectedId` change (which invalidates the memo
+  // anyway) and a parent re-render (which hands it fresh `children`, so the
+  // consumers re-render on element identity regardless). Nothing here is
+  // wrapped in React.memo, so a stable context identity saves zero renders.
+  const selection: SelectionApi = { selectedId, select: setSelectedId }
 
   return (
     <QueryClientProvider client={queryClient}>
