@@ -4,7 +4,6 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -113,10 +112,18 @@ export function createTabs<T extends string = string>(
       }
     }, [value])
 
-    const context: TabsContextValue = useMemo(
-      () => ({ value, select: setValue, baseId, defaultValue, knownValues }),
-      [value, baseId, defaultValue, knownValues],
-    )
+    // Not memoized on purpose: the only two things that re-render TabsRoot are
+    // a `value` change (which invalidates the memo anyway) and a parent
+    // re-render (which hands `children` fresh elements, so the consumers
+    // re-render regardless). Nothing here is wrapped in React.memo, so a
+    // stable context identity saves zero renders.
+    const context: TabsContextValue = {
+      value,
+      select: setValue,
+      baseId,
+      defaultValue,
+      knownValues,
+    }
 
     return <TabsContext.Provider value={context}>{children}</TabsContext.Provider>
   }
